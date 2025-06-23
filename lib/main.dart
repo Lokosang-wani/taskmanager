@@ -26,23 +26,20 @@ class TaskManagerHome extends StatefulWidget {
   State<TaskManagerHome> createState() => _TaskManagerHomeState();
 }
 
-// Task data structure
+// Task data structure with isDone field
 class Task {
   String title;
   DateTime dueDate;
+  bool isDone;
 
-  Task({required this.title, required this.dueDate});
+  Task({required this.title, required this.dueDate, this.isDone = false});
 }
 
 class _TaskManagerHomeState extends State<TaskManagerHome> {
-  // List of tasks
   List<Task> tasks = [];
-
-  // Controllers for input fields
   final TextEditingController taskController = TextEditingController();
   DateTime? selectedDate;
 
-  // Show date picker and update selectedDate
   Future<void> _pickDueDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -57,7 +54,6 @@ class _TaskManagerHomeState extends State<TaskManagerHome> {
     }
   }
 
-  // Add new task to the list
   void _addTask() {
     if (taskController.text.isNotEmpty && selectedDate != null) {
       setState(() {
@@ -68,30 +64,32 @@ class _TaskManagerHomeState extends State<TaskManagerHome> {
     }
   }
 
-  // Delete a task by index
   void _deleteTask(int index) {
     setState(() {
       tasks.removeAt(index);
     });
   }
 
+  void _toggleTaskDone(int index) {
+    setState(() {
+      tasks[index].isDone = !tasks[index].isDone;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // AppBar with custom style
       appBar: AppBar(
         title: const Text('Task Manager'),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.deepOrange,
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            // Task input field and add button
+            // Task input section
             Row(
               children: [
-                // Expanded lets input field take remaining width
                 Expanded(
                   child: TextField(
                     controller: taskController,
@@ -112,10 +110,9 @@ class _TaskManagerHomeState extends State<TaskManagerHome> {
                 ElevatedButton(onPressed: _addTask, child: const Text('Add')),
               ],
             ),
-
             const SizedBox(height: 20),
 
-            // Display task list
+            // Task list display
             Expanded(
               child: ListView.builder(
                 itemCount: tasks.length,
@@ -124,7 +121,19 @@ class _TaskManagerHomeState extends State<TaskManagerHome> {
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 6),
                     child: ListTile(
-                      title: Text(task.title),
+                      leading: Checkbox(
+                        value: task.isDone,
+                        onChanged: (_) => _toggleTaskDone(index),
+                      ),
+                      title: Text(
+                        task.title,
+                        style: TextStyle(
+                          decoration: task.isDone
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                          color: task.isDone ? Colors.grey : Colors.black,
+                        ),
+                      ),
                       subtitle: Text(
                         'Due: ${task.dueDate.toString().split(' ')[0]}',
                       ),
